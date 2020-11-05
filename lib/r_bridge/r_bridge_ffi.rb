@@ -185,7 +185,6 @@ module RBridge
       when FalseClass
         1
       else
-        nil
         raise " The current elemnt is not supported to convert to R vector : " + elem
       end
     }
@@ -208,6 +207,7 @@ module RBridge
         when 1
           raise "All the elements shold be true/false. Current value: " + ary[idx]
         end
+        converted
       else
         ary[idx]
       end

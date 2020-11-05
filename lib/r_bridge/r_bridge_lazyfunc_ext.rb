@@ -7,7 +7,7 @@ module RBridge
     return LazyFunc.new( fname, hash , param_manager)
   end
 
-  def self.create_function_call_from_lazy_function ( fname, fargs, param_manager, result_manager)
+  def self.create_function_call_from_lazy_function( fname, fargs, param_manager, result_manager)
     farg_keys = fargs.keys
 
     new_arg_hash = {}

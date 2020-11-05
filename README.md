@@ -41,7 +41,11 @@ Depending on installing via source or binary, necessary settings differ. If you 
             + This path should have libR.pc file.
 5. For R to properly work, R_HOME variable is sometimes required. Set it to the root directory that contains R libraries.
     + (e.g.) export R_HOME=/usr/lib64/R
-6. Install 'r_bridge' via this git repository.
+6. Install 'r_bridge' gem
+
+```
+gem install r_bridge
+```
 
 
 
@@ -55,8 +59,11 @@ For windows, there is a known issue. Output from R contains unknown characters, 
 2. Make sure that R.exe and R.dll can be seen from your system.
     + For Windows, add path for R.exe (e.g. C:\Program Files\R\R-4.0.2\bin ) to 'Path' system or user variable.
     + Also, create 'RUBY_DLL_PATH' system or user variable, which includes path for R.dll (e.g. C:\Program Files\R\R-4.0.2\bin\x64 ).
-3. Install 'r_bridge' via this git repository.
+3. Install 'r_bridge' gem
 
+```
+gem install r_bridge
+```
 
 
 ## Example
