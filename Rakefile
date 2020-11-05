@@ -26,6 +26,15 @@ Rake::TestTask.new(:test) do |t|
   t.test_files = FileList["test/**/*_test.rb"]
 end
 
+# rake example
+task :example do
+  file_list = Dir.glob("example/example*.rb")
+  file_list.each(){|path|
+    puts "###### Running script #{path} #####"
+    ruby path
+    puts ""
+  }
+end
 
 # rake clean
 CLEAN.include(["tmp/", "lib/r_bridge/librbridge.so"])
