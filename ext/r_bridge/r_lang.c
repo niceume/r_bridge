@@ -44,6 +44,14 @@ r_lang_symbol( const char* symbol_name)
 }
 
 EXPORT SEXP
+r_lang_create_extptr( void* ptr )
+{
+    SEXP extptr;
+    PROTECT( extptr = R_MakeExternalPtr( ptr, R_NilValue, R_NilValue ));
+    return extptr;
+}
+
+EXPORT SEXP
 r_lang_nil()
 {
     return R_NilValue;

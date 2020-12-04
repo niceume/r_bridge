@@ -30,6 +30,8 @@ module RBridge
   attach_function :r_lang_set_tag, [:pointer, :string], :void
   attach_function :r_lang_symbol, [:string], :pointer
 
+  attach_function :r_lang_create_extptr, [:pointer], :pointer
+
   attach_function :r_eval, [:pointer], :pointer
   attach_function :r_eval_no_return, [:pointer], :pointer
 
@@ -281,6 +283,15 @@ module RBridge
 
   def self.set_tag_to_lcons( lcons, tag_name )
     r_lang_set_tag( lcons, tag_name )
+  end
+
+  def self.create_extptr( ffi_pointer )
+    raise "create_extptr should take a FFI::Pointer argument" if(ffi_pointer.class != FFI::Pointer)
+
+    extptr = r_lang_create_extptr(ffi_pointer)
+
+    ptr_manager_add_ptr_to_current( extptr )
+    return extptr
   end
 
   def self.create_function_call( fname,  hash )

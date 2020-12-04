@@ -203,6 +203,16 @@ ary = [ RBridge::SymbolR.new("y"),
 formula = RBridge::create_formula_from_syms( ary )  # y ~ x
 ```
 
+* Create EXTPTRSXP type object
+
+If you need to deal with external pointers in R, you can hold them with EXTPTRSXP type objects.
+
+create_extptr takes FFI::Pointer as its argument, and creates EXTPTRSXP object. Internally R_MakeExternalPtr() C function is used.
+
+```
+RBridge.create_extptr( ffi_ptr )
+```
+
 
 * Create R function call
 
