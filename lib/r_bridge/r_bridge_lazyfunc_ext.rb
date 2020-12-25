@@ -97,6 +97,7 @@ module RBridge
   end
 
   class RParamManager
+    attr :param_hash , true
     def initialize(hash)
       @param_hash = hash
     end
