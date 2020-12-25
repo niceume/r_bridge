@@ -13,6 +13,17 @@ module RBridge
     new_arg_hash = {}
     farg_keys.each(){|key|
       val = fargs[key]
+
+      if val.is_a? RResultPrevious
+        r_previous = result_manager.get_previous() # if nil (i.e. 1st instruction or no previous result-store instructions) we need to use default one.
+        if ! r_previous.nil?  # When previous result exists
+          new_arg_hash[key] = r_previous
+          break
+        else  # When previous result does not exist
+          val = val.default
+        end
+      end
+
       case val
       when LazyFunc then
         new_arg_hash[key] = create_function_call_from_lazy_function( val.fname, val.args , param_manager, result_manager )
@@ -112,6 +123,18 @@ module RBridge
     end
   end
 
+  class RResultPrevious
+    # RResultPrevious is used for result from the previous instruction.
+    # If the instruction is the 1st one, there are no previous ones. At this time, default one is used.
+    attr :default
+    def initialize(val)
+      if ! ( val.is_a?(RNameContainer) || val.is_a?(RResultName) || val.is_a?(RResultNameArray) || val.is_a?(RParamName) || ::RBridge.is_pointer?( val ) )
+        raise "RResultPrevious.new requires RNameContainer, RResultName, RResultNameArray, RParamName or R object as default"
+      end
+      @default = val
+    end
+  end
+
   class RResultManager
     def initialize
       @results = []
@@ -183,6 +206,16 @@ module RBridge
         end
       else
         raise "get_last_for() takes unexpected object"
+      end
+    end
+
+    def get_previous()
+       p @results
+       if @results.size > 0
+        r_obj = @results.last[1]
+        return r_obj
+      else
+        return nil
       end
     end
   end
