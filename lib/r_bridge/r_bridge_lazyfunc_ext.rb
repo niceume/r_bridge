@@ -15,8 +15,8 @@ module RBridge
       val = fargs[key]
 
       if val.is_a? RResultPrevious
-        r_previous = result_manager.get_previous() # if nil (i.e. 1st instruction or no previous result-store instructions) we need to use default one.
-        if ! r_previous.nil?  # When previous result exists
+        r_previous = result_manager.get_previous() # if r_nil (i.e. 1st instruction or no previous result-store instructions) we need to use default one.
+        if ! RBridge::is_r_nil?(r_previous)  # When previous result exists
           new_arg_hash[key] = r_previous
           break
         else  # When previous result does not exist
@@ -38,13 +38,13 @@ module RBridge
           case elem
           when RResultName, RResultNameArray then 
             result = result_manager.get_last_for( elem )
-            if( ! result.nil? )
+            if( ! RBridge::is_r_nil?(result) )
               new_arg_hash[key] = result
               break
             end
           when RParamName then
             result = param_manager.get_r_object( elem )
-            if( ! result.nil? )
+            if( ! RBridge::is_r_nil?(result) )
               new_arg_hash[key] = result
               break
             end
@@ -55,7 +55,7 @@ module RBridge
           idx = idx + 1
         end
         if(idx == val.elems.size ) # Not found
-          new_arg_hash[key] = nil
+          new_arg_hash[key] = RBridge::r_nil()
         end
       else  # R object
         new_arg_hash[key] = val
@@ -149,7 +149,7 @@ module RBridge
       @results << [inst_name, r_obj ]
     end
 
-    def get_last_index_for( result_name )
+    def get_last_index_for( result_name ) # From this method, if result name is not found return (Ruby) nil.
         name = result_name.name
 
         idx = @results.size - 1
@@ -167,18 +167,18 @@ module RBridge
         end
     end
 
-    def get_last_for( r_result )  # If corresponding result name is not found, return nil.
+    def get_last_for( r_result )  # If corresponding result name is not found, return r_nil().
       raise "get_last_for method requires RResultName or RResultNameArray for its argument." if ! ( r_result.is_a?(RResultName) || r_result.is_a?(RResultNameArray) )
       if( r_result.is_a? RResultName)
         inst_name = r_result.name
 
         elem_to_match = @results.reverse.find{|elem| elem[0] == inst_name }
         if elem_to_match.nil?
-          return nil
+          return RBridge::r_nil()
         else
           r_obj = elem_to_match[1]
           if RBridge::is_r_nil?( r_obj )
-            return nil
+            return RBridge::r_nil()
           else
             return r_obj
           end
@@ -194,7 +194,7 @@ module RBridge
         }
 
         if( index_array.all?(nil) )
-          return nil
+          return RBridge::r_nil()
         else
           index_array.delete(nil)
           if ! index_array.empty?
@@ -202,7 +202,7 @@ module RBridge
             r_obj = @results[last_idx][1]
             return r_obj
           else
-            return nil
+            return RBridge::r_nil()
           end
         end
       else
@@ -216,7 +216,7 @@ module RBridge
         r_obj = @results.last[1]
         return r_obj
       else
-        return nil
+        return RBridge::r_nil()
       end
     end
   end

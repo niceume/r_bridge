@@ -272,6 +272,10 @@ module RBridge
     return new_lcons
   end
 
+  def self.r_nil()
+    return r_lang_nil()
+  end
+
   def self.is_r_nil?( obj )
     result = r_is_nil( obj )
     if(result == 1)
