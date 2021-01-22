@@ -216,11 +216,12 @@ RBridge.create_extptr( ffi_ptr )
 
 * Create R function call
 
-create_function_call creates R's internal S expresion structure for function call.
+create_ns_function_call and create_function_call create R's internal S expresion structures for function calls. create_ns_function_call can specify namespace (package). 
 
 Arguments are passed to the second argument as Ruby Hash, and each Hash's value needs to point to R's object. You usually pass R vectors, but you can also pass another function call as an argument.
 
 ```
+RBridge.create_ns_function_call( ns, fname, hash )
 RBridge.create_function_call( fname,  hash )
 
 (e.g.)
@@ -231,6 +232,11 @@ RBridge.exec_function_no_return(hellowrold)
 # pass another function call to argument
 getwd = RBridge.create_function_call( "print", { "x" => RBridge.create_function_call( "getwd", {} ) } )
 RBridge.exec_function_no_return(getwd)
+
+# call sqrt function in base package.
+ivec = RBridge.create_intvec([1,2,3])
+calc = RBridge.create_ns_function_call( "base","sqrt", {"x" => ivec} )
+RBridge.exec_function_no_return( RBridge.create_function_call( "print", {"" => calc} )) # execute & print out
 ```
 
 The followings are utility functions. assign() and library() are frequently used in R, and easy ways to create them are provided.
