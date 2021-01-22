@@ -1,13 +1,20 @@
 require "r_bridge/r_bridge_ffi"
 
 module RBridge
+  def self.create_ns_lazy_function( ns, fname, hash , param_manager)
+    raise "create_ns_lazy_function should take String for namespace" if(ns.class != String) 
+    raise "create_ns_lazy_function should take String for function name" if(fname.class != String) 
+    raise "create_ns_lazy_function should take Hash for function arguments" if(hash.class != Hash)
+    return LazyFunc.new( ns, fname, hash , param_manager)
+  end
+
   def self.create_lazy_function( fname, hash , param_manager)
     raise "create_lazy_function should take String for function name" if(fname.class != String) 
     raise "create_lazy_function should take Hash for function arguments" if(hash.class != Hash)
-    return LazyFunc.new( fname, hash , param_manager)
+    return LazyFunc.new( nil, fname, hash , param_manager)
   end
 
-  def self.create_function_call_from_lazy_function( fname, fargs, param_manager, result_manager)
+  def self.create_function_call_from_lazy_function_attrs( ns, fname, fargs, param_manager, result_manager)
     farg_keys = fargs.keys
 
     new_arg_hash = {}
@@ -26,7 +33,7 @@ module RBridge
 
       case val
       when LazyFunc then
-        new_arg_hash[key] = create_function_call_from_lazy_function( val.fname, val.args , param_manager, result_manager )
+        new_arg_hash[key] = create_function_call_from_lazy_function_attrs( val.ns, val.fname, val.args , param_manager, result_manager )
       when RResultName , RResultNameArray then 
         new_arg_hash[key] = result_manager.get_last_for( val )
       when RParamName then
@@ -61,28 +68,35 @@ module RBridge
         new_arg_hash[key] = val
       end
     }
-    return create_function_call( fname, new_arg_hash )
+    if( ns.nil? )
+      return create_function_call( fname, new_arg_hash )
+    else
+      return create_ns_function_call( ns, fname, new_arg_hash )
+    end
   end
 
   def self.exec_lazy_function( lazy_func , result_manager , allow_nil_result: false )
     raise "exec_lazy_function should take LazyFunc object" if(lazy_func.class != LazyFunc) 
     raise "exec_lazy_function should take RResultManager or Nil for 2nd argment: " + result_manager.class.to_s  if(! [RResultManager, NilClass].include?(result_manager.class) )
+    ns = lazy_func.ns
     fname = lazy_func.fname
     arg_hash = lazy_func.args
     param_manager = lazy_func.param_manager
 
-    func = create_function_call_from_lazy_function(fname, arg_hash, param_manager, result_manager)
+    func = create_function_call_from_lazy_function_attrs(ns, fname, arg_hash, param_manager, result_manager)
     result = exec_function( func , allow_nil_result: allow_nil_result )
     return result
   end
 
   class LazyFunc
+    attr :ns
     attr :fname
     attr :args
     attr :param_manager
 
-    def initialize( fname, arg_hash, param_manager)
+    def initialize( ns, fname, arg_hash, param_manager)
       raise "LazyFunc requires RParamManager object for param_manager argument " if ! param_manager.is_a?(RParamManager)
+      @ns = ns  # When namespace does not need to be specified, set nil.
       @fname = fname
       @args = arg_hash
       @param_manager = param_manager
