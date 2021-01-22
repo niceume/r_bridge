@@ -25,6 +25,7 @@ module RBridge
   attach_function :r_dataframe_set_rownames, [:pointer, :pointer], :void
 
   attach_function :r_lang_create_ns_fcall, [:string, :string, :pointer], :pointer
+  attach_function :r_lang_create_env_fcall, [:string, :string, :pointer], :pointer
   attach_function :r_lang_create_fcall, [:string, :pointer], :pointer
   attach_function :r_lang_cons, [:pointer, :pointer], :pointer
   attach_function :r_lang_cons_gen, [:pointer], :pointer
@@ -336,6 +337,17 @@ module RBridge
     lcons_args = hash_to_lcons_args( hash )
 
     new_function_call = r_lang_create_ns_fcall(ns, fname, lcons_args)
+    ptr_manager_add_ptr_to_current( new_function_call )
+    return new_function_call
+  end
+
+  def self.create_env_function_call( env, fname, hash )
+    raise "create_env_function_call should take String for env" if(env.class != String) 
+    raise "create_env_function_call should take String for function name" if(fname.class != String) 
+    raise "create_env_function_call should take Hash for function arguments" if(hash.class != Hash)
+    lcons_args = hash_to_lcons_args( hash )
+
+    new_function_call = r_lang_create_env_fcall(env, fname, lcons_args)
     ptr_manager_add_ptr_to_current( new_function_call )
     return new_function_call
   end

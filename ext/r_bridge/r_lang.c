@@ -13,6 +13,14 @@ r_lang_create_ns_fcall( const char* ns, const char* fname, SEXP args)
 }
 
 EXPORT SEXP
+r_lang_create_env_fcall( const char* env, const char* fname, SEXP args)
+{
+    SEXP func;
+    PROTECT( func = LCONS( LCONS( Rf_install("$"), LCONS( Rf_install(env), LCONS( Rf_install(fname), R_NilValue))) , args ));
+    return func;
+}
+
+EXPORT SEXP
 r_lang_create_fcall( const char* fname, SEXP args)
 {
     SEXP func;

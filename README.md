@@ -216,12 +216,13 @@ RBridge.create_extptr( ffi_ptr )
 
 * Create R function call
 
-create_ns_function_call and create_function_call create R's internal S expresion structures for function calls. create_ns_function_call can specify namespace (package). 
+create_ns_function_call, create_env_function_call and create_function_call create R's internal S expresion structures for function calls. create_ns_function_call can specify (package) namespace. create_env_function_call can specify environment name.
 
-Arguments are passed to the second argument as Ruby Hash, and each Hash's value needs to point to R's object. You usually pass R vectors, but you can also pass another function call as an argument.
+Arguments are passed as Ruby Hash, and each Hash's value needs to point to R's object. You usually pass R vectors, but you can also pass another function call as an argument.
 
 ```
 RBridge.create_ns_function_call( ns, fname, hash )
+RBridge.create_env_function_call( env, fname, hash )
 RBridge.create_function_call( fname,  hash )
 
 (e.g.)
@@ -237,6 +238,16 @@ RBridge.exec_function_no_return(getwd)
 ivec = RBridge.create_intvec([1,2,3])
 calc = RBridge.create_ns_function_call( "base","sqrt", {"x" => ivec} )
 RBridge.exec_function_no_return( RBridge.create_function_call( "print", {"" => calc} )) # execute & print out
+
+# Call function in environment
+#
+# (e.g.) source the following newenv.R and call the newenv$hello function.
+# # newenv.R
+# newenv = new.env()
+# newenv$hello = function(){ print("Hello!") }
+#
+RBridge.exec_function_no_return( RBridge.create_function_call("source", { "" => RBridge.create_strvec(["newenv.R"]) }))
+RBridge.exec_function_no_return( RBridge.create_env_function_call("newenv", "hello", { } ))
 ```
 
 The followings are utility functions. assign() and library() are frequently used in R, and easy ways to create them are provided.
