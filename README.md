@@ -373,7 +373,7 @@ RBridge.end_embedded_r()
 
 ## Additional Features
 
-* LazyFunc + RParamManager (+ RResultManager): In contrast to create_function_call(), create_lazy_function(), which creates LazyFunc object, does not need to take existent R objects. It can take RParamName, RResultName and so on, which are not associated with R objects until the function is evaluated. create_ns_lazy_function() is a lazy evaluation version of create_ns_function_call(), which allow specifying namespaces.
+* LazyFunc + RParamManager (+ RResultManager): In contrast to create_function_call(), create_lazy_function(), which creates LazyFunc object, does not need to take existent R objects. It can take RParamName, RResultName and so on, which are not associated with R objects until the function is evaluated. create_ns_lazy_function(), create_env_lazy_function() are lazy evaluation version of create_ns_function_call() and create_env_function_call(), which respectively allows specifying namespaces and environments.
 
 These features are being developed for StatSailr, and the API is not stable. They can be accessed but they are not recommended for general usage.
 
