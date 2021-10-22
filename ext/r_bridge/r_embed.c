@@ -2,6 +2,12 @@
 #include <Rembedded.h>
 #include <Rdefines.h>
 
+#include <stdbool.h>
+
+#include <stdint.h>
+#define CSTACK_DEFNS
+#include <Rinterface.h>
+
 #include "win_compat.h"
 
 #ifdef __FreeBSD__
@@ -10,22 +16,32 @@ fp_rnd_t fpmask_preset;
 #endif
 
 EXPORT void
-r_embedded_init()
+r_embedded_init( bool unlimited_stack_size )
 {
 
     #ifdef __FreeBSD__
         fpmask_preset = fpsetmask(0);
     #endif
 
-    size_t localArgc = 2;
-    char localArgs[][50] = {"R", "--silent"};
+    size_t localArgc = 3;
+    char localArgs[][50] = {"R", "--silent", "--vanilla"};
 
     char *args[ localArgc ];
     for (size_t i = 0; i < localArgc; ++i){
         args[i] = localArgs[i];
     }
 
-    Rf_initEmbeddedR( localArgc , args );
+    // Rf_initEmbeddedR raises C stack usage limit error on multithreading environment.
+    // Rf_initEmbeddedR( localArgc , args ); is replaced with the following code.
+
+    if( unlimited_stack_size == false ){  // default stack size
+      Rf_initialize_R( localArgc , args );
+      setup_Rmainloop();
+    }else{
+      Rf_initialize_R( localArgc , args );
+      R_CStackLimit = (uintptr_t) -1 ;  // Set -1 for unlimited C stack size.
+      setup_Rmainloop();
+    }
 }
 
 EXPORT void

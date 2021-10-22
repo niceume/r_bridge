@@ -7,7 +7,7 @@ module RBridge
   lib_name = "librbridge" + "." + RbConfig::CONFIG['DLEXT']
   ffi_lib File.expand_path( lib_name, __dir__ )
 
-  attach_function :r_embedded_init, [], :void
+  attach_function :r_embedded_init, [:bool], :void
   attach_function :r_embedded_end, [], :void
 
   attach_function :r_vec_create_str, [:int], :pointer
@@ -49,8 +49,11 @@ module RBridge
 
   # From here, Ruby interface
 
-  def self.init_embedded_r()
-    r_embedded_init()
+  def self.init_embedded_r( unlimited_cstack: false )
+    if(unlimited_cstack.class != TrueClass && unlimited_cstack.class != FalseClass)
+      raise "init_embedded_r() can take true or false for unlimited C stack size. true: unlimited, false: default." 
+    end
+    r_embedded_init( unlimited_cstack )
   end
 
   def self.end_embedded_r()
