@@ -1,37 +1,35 @@
 require "r_bridge/r_bridge_ffi"
 
 module RBridge
-  def self.create_ns_lazy_function( ns, fname, hash , param_manager)
+  def self.create_ns_lazy_function( ns, fname, hash_like , param_manager)
     raise "create_ns_lazy_function should take String for namespace" if(ns.class != String) 
     raise "create_ns_lazy_function should take String for function name" if(fname.class != String) 
-    raise "create_ns_lazy_function should take Hash for function arguments" if(hash.class != Hash)
-    return LazyFunc.new( ns, nil, fname, hash , param_manager)
+    raise "create_ns_lazy_function should take Hash like structure for function arguments" if(hash_like.class != Hash && hash_like.class != Array)
+    return LazyFunc.new( ns, nil, fname, hash_like, param_manager)
   end
 
-  def self.create_env_lazy_function( env, fname, hash , param_manager)
+  def self.create_env_lazy_function( env, fname, hash_like , param_manager)
     raise "create_env_lazy_function should take String for environment" if(env.class != String) 
     raise "create_env_lazy_function should take String for function name" if(fname.class != String) 
-    raise "create_env_lazy_function should take Hash for function arguments" if(hash.class != Hash)
-    return LazyFunc.new( nil, env, fname, hash , param_manager)
+    raise "create_env_lazy_function should take Hash like structure for function arguments" if(hash_like.class != Hash && hash_like.class != Array)
+    return LazyFunc.new( nil, env, fname, hash_like, param_manager)
   end
 
-  def self.create_lazy_function( fname, hash , param_manager)
+  def self.create_lazy_function( fname, hash_like , param_manager)
     raise "create_lazy_function should take String for function name" if(fname.class != String) 
-    raise "create_lazy_function should take Hash for function arguments" if(hash.class != Hash)
-    return LazyFunc.new( nil, nil, fname, hash , param_manager)
+    raise "create_lazy_function should take Hash like structure for function arguments" if(hash_like.class != Hash && hash_like.class != Array)
+    return LazyFunc.new( nil, nil, fname, hash_like, param_manager)
   end
 
   def self.create_function_call_from_lazy_function_attrs( ns, env, fname, fargs, param_manager, result_manager)
-    farg_keys = fargs.keys
 
-    new_arg_hash = {}
-    farg_keys.each(){|key|
-      val = fargs[key]
+    new_arg_assoc_array = []
+    fargs.each(){|key, val|
 
       if val.is_a? RResultPrevious
         r_previous = result_manager.get_previous() # if r_nil (i.e. 1st instruction or no previous result-store instructions) we need to use default one.
         if ! RBridge::is_r_nil?(r_previous)  # When previous result exists
-          new_arg_hash[key] = r_previous
+          new_arg_assoc_array << [key, r_previous]
           break
         else  # When previous result does not exist
           val = val.default
@@ -40,11 +38,11 @@ module RBridge
 
       case val
       when LazyFunc then
-        new_arg_hash[key] = create_function_call_from_lazy_function_attrs( val.ns, val.env, val.fname, val.args , param_manager, result_manager )
+        new_arg_assoc_array << [key, create_function_call_from_lazy_function_attrs( val.ns, val.env, val.fname, val.args , param_manager, result_manager )]
       when RResultName , RResultNameArray then 
-        new_arg_hash[key] = result_manager.get_last_for( val )
+        new_arg_assoc_array << [key, result_manager.get_last_for( val )]
       when RParamName then
-        new_arg_hash[key] = param_manager.get_r_object( val )
+        new_arg_assoc_array << [key, param_manager.get_r_object( val )]
       when RNameContainer then
         idx = 0
         while idx < val.elems.size do
@@ -53,37 +51,37 @@ module RBridge
           when RResultName, RResultNameArray then 
             result = result_manager.get_last_for( elem )
             if( ! RBridge::is_r_nil?(result) )
-              new_arg_hash[key] = result
+              new_arg_assoc_array << [key, result]
               break
             end
           when RParamName then
             result = param_manager.get_r_object( elem )
             if( ! RBridge::is_r_nil?(result) )
-              new_arg_hash[key] = result
+              new_arg_assoc_array << [key, result]
               break
             end
           else  # R object
-            new_arg_hash[key] = val
+            new_arg_assoc_array << [key, val]
             break
           end
           idx = idx + 1
         end
         if(idx == val.elems.size ) # Not found
-          new_arg_hash[key] = RBridge::r_nil()
+          new_arg_assoc_array << [key, RBridge::r_nil()]
         end
       else  # R object
-        new_arg_hash[key] = val
+        new_arg_assoc_array << [key, val]
       end
     }
     if( ns.nil? )
       if( env.nil? )
-        return create_function_call( fname, new_arg_hash )
+        return create_function_call( fname, new_arg_assoc_array )
       else
-        return create_env_function_call( env, fname, new_arg_hash )
+        return create_env_function_call( env, fname, new_arg_assoc_array )
       end
     else
       if( env.nil? )
-        return create_ns_function_call( ns, fname, new_arg_hash )
+        return create_ns_function_call( ns, fname, new_arg_assoc_array )
       else
         raise "namespace and environment are not allowed to be specified at the same time."
       end

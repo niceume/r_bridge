@@ -218,12 +218,15 @@ RBridge.create_extptr( ffi_ptr )
 
 create_ns_function_call, create_env_function_call and create_function_call create R's internal S expresion structures for function calls. create_ns_function_call can specify (package) namespace. create_env_function_call can specify environment name.
 
-Arguments are passed as Ruby Hash, and each Hash's value needs to point to R's object. You usually pass R vectors, but you can also pass another function call as an argument.
+Arguments are passed as Ruby's Hash like objects, Hash or assocation Array, and their each element's value needs to be R's object. For these R objects You can assign not only R vectors but also other function calls.
+
+Assocation Arrays are useful when you have more than one elements with the same key name, which Hash does not allow. This happens when you do not specify parameter name and you use empty Strings, "", as parameter names.
+
 
 ```
-RBridge.create_ns_function_call( ns, fname, hash )
-RBridge.create_env_function_call( env, fname, hash )
-RBridge.create_function_call( fname,  hash )
+RBridge.create_ns_function_call( ns, fname, hash_like )
+RBridge.create_env_function_call( env, fname, hash_like )
+RBridge.create_function_call( fname,  hash_like )
 
 (e.g.)
 # pass vector to argument
@@ -248,6 +251,10 @@ RBridge.exec_function_no_return( RBridge.create_function_call( "print", {"" => c
 #
 RBridge.exec_function_no_return( RBridge.create_function_call("source", { "" => RBridge.create_strvec(["newenv.R"]) }))
 RBridge.exec_function_no_return( RBridge.create_env_function_call("newenv", "hello", { } ))
+
+# pass association Array to argument
+add = RBridge.create_function_call( "+", [["" , RBridge.create_intvec( [1,2,3] )],["", RBridge.create_intvec( [10,20,30] ) ]] )
+RBridge.exec_function( RBridge.create_function_call("print", [["" , add ]]))
 ```
 
 The followings are utility functions. assign() and library() are frequently used in R, and easy ways to create them are provided.

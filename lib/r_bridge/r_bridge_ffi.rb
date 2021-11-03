@@ -303,20 +303,44 @@ module RBridge
     return extptr
   end
 
-  def self.hash_to_lcons_args( hash ) 
-    raise "hash_to_lcons_args should take Hash argument" if(hash.class != Hash)
-    if(hash.size == 0)
+  def self.array_depth (ary)
+    return 0 unless ary.is_a?(Array)
+    return 1 + ary.map(){|elem| array_depth(elem) }.max()
+  end
+
+  def self.assoc_array?(ary)
+    if ary.map(){|elem| elem.size }.uniq == [2]
+      true
+    else
+      false
+    end
+  end
+
+  def self.hash_to_lcons_args( hash_like )
+    if hash_like.class == Hash
+      # hash
+    elsif hash_like.class == Array
+      if array_depth(hash_like) == 2 && assoc_array?(hash_like)
+        # association array
+      else
+        raise "hash_to_lcons_args should take Hash argument (or Association Array argument)"
+      end
+    else
+      raise "hash_to_lcons_args should take Hash argument (or Association Array argument)"
+    end
+
+    if(hash_like.size == 0)
       lcons_args = r_lang_nil()
-    elsif(hash.size == 1)
-      tag = hash.first[0]
-      val = hash.first[1]
+    elsif(hash_like.size == 1)
+      tag = hash_like.first[0]
+      val = hash_like.first[1]
       lcons_args = lcons_gen( val )
       if( tag != "" )
         set_tag_to_lcons( lcons_args, tag )
       end
     else
       idx = 0
-      hash.reverse_each(){|arg|
+      hash_like.reverse_each(){|arg|
         tag = arg[0]
         val = arg[1]
         if(idx == 0 )
@@ -333,32 +357,32 @@ module RBridge
     return lcons_args
   end
 
-  def self.create_ns_function_call( ns, fname, hash )
+  def self.create_ns_function_call( ns, fname, hash_like )
     raise "create_ns_function_call should take String for namespace" if(ns.class != String) 
     raise "create_ns_function_call should take String for function name" if(fname.class != String) 
-    raise "create_ns_function_call should take Hash for function arguments" if(hash.class != Hash)
-    lcons_args = hash_to_lcons_args( hash )
+    raise "create_ns_function_call should take Hash like structure for function arguments" if(hash_like.class != Hash && hash_like.class != Array)
+    lcons_args = hash_to_lcons_args( hash_like )
 
     new_function_call = r_lang_create_ns_fcall(ns, fname, lcons_args)
     ptr_manager_add_ptr_to_current( new_function_call )
     return new_function_call
   end
 
-  def self.create_env_function_call( env, fname, hash )
+  def self.create_env_function_call( env, fname, hash_like )
     raise "create_env_function_call should take String for env" if(env.class != String) 
     raise "create_env_function_call should take String for function name" if(fname.class != String) 
-    raise "create_env_function_call should take Hash for function arguments" if(hash.class != Hash)
-    lcons_args = hash_to_lcons_args( hash )
+    raise "create_env_function_call should take Hash like structure for function arguments" if(hash_like.class != Hash && hash_like.class != Array)
+    lcons_args = hash_to_lcons_args( hash_like )
 
     new_function_call = r_lang_create_env_fcall(env, fname, lcons_args)
     ptr_manager_add_ptr_to_current( new_function_call )
     return new_function_call
   end
 
-  def self.create_function_call( fname,  hash )
+  def self.create_function_call( fname,  hash_like )
     raise "create_function_call should take String for function name" if(fname.class != String) 
-    raise "create_function_call should take Hash for function arguments" if(hash.class != Hash)
-    lcons_args = hash_to_lcons_args( hash )
+    raise "create_function_call should take Hash like structure for function arguments" if(hash_like.class != Hash && hash_like.class != Array)
+    lcons_args = hash_to_lcons_args( hash_like )
 
     new_function_call = r_lang_create_fcall(fname, lcons_args)
     ptr_manager_add_ptr_to_current( new_function_call )
