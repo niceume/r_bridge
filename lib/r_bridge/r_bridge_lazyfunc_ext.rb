@@ -241,7 +241,6 @@ module RBridge
     end
 
     def get_previous()
-       p @results
        if @results.size > 0
         r_obj = @results.last[1]
         return r_obj
