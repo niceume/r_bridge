@@ -30,7 +30,7 @@ module RBridge
         r_previous = result_manager.get_previous() # if r_nil (i.e. 1st instruction or no previous result-store instructions) we need to use default one.
         if ! RBridge::is_r_nil?(r_previous)  # When previous result exists
           new_arg_assoc_array << [key, r_previous]
-          break
+          next
         else  # When previous result does not exist
           val = val.default
         end
