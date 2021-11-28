@@ -261,6 +261,8 @@ module RBridge
       else
         r_obj = value.to_r_symbol
       end
+    when value.class == NilClass
+      r_obj = RBridge.r_nil
     end
     return r_obj
   end
