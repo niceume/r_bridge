@@ -69,6 +69,8 @@ module RBridge
         if(idx == val.elems.size ) # Not found
           new_arg_assoc_array << [key, RBridge::r_nil()]
         end
+      when RInstPrevious
+        new_arg_assoc_array << [key, result_manager.get_previous_inst_name() ]
       else  # R object
         new_arg_assoc_array << [key, val]
       end
@@ -166,6 +168,10 @@ module RBridge
     end
   end
 
+  class RInstPrevious
+    # RInstPrevious is used to obtain the previous instruction name.
+  end
+
   class RResultManager
     def initialize
       @results = []
@@ -243,6 +249,16 @@ module RBridge
     def get_previous()
        if @results.size > 0
         r_obj = @results.last[1]
+        return r_obj
+      else
+        return RBridge::r_nil()
+      end
+    end
+
+    def get_previous_inst_name()
+      if @results.size > 0
+        last_inst_name = @results.last[0]
+        r_obj = RBridge::create_strvec([last_inst_name])
         return r_obj
       else
         return RBridge::r_nil()
