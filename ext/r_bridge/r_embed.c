@@ -6,9 +6,11 @@
 
 #include <stdint.h>
 #define CSTACK_DEFNS
-#include <Rinterface.h>
 
 #include "win_compat.h"
+#ifndef _WIN
+#include <Rinterface.h>
+#endif
 
 #ifdef __FreeBSD__
 #include <ieeefp.h>
@@ -39,7 +41,9 @@ r_embedded_init( bool unlimited_stack_size )
       setup_Rmainloop();
     }else{
       Rf_initialize_R( localArgc , args );
+      #ifndef _WIN
       R_CStackLimit = (uintptr_t) -1 ;  // Set -1 for unlimited C stack size.
+      #endif
       setup_Rmainloop();
     }
 }
